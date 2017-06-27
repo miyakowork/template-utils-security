@@ -1,4 +1,4 @@
-package me.wuwenbin.security;
+package org.templateproject.security;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

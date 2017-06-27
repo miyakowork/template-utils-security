@@ -1,7 +1,7 @@
-package me.wuwenbin.security.asymmetric;
+package org.templateproject.security.asymmetric;
 
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.bcd.BCD;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.bcd.BCD;
 
 import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;

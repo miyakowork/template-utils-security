@@ -1,4 +1,4 @@
-package me.wuwenbin.security.zsupport;
+package org.templateproject.security.zsupport;
 
 /**
  * 代码移植自<a href="https://github.com/biezhi/blade">blade</a><br>

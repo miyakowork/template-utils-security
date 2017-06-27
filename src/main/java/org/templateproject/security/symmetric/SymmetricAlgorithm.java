@@ -1,4 +1,4 @@
-package me.wuwenbin.security.symmetric;
+package org.templateproject.security.symmetric;
 
 /**
  * 对称算法类型<br>

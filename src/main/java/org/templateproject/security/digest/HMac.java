@@ -1,42 +1,56 @@
-package me.wuwenbin.security.digest;
+package org.templateproject.security.digest;
 
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.HexUtils;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.SecurityUtils;
+import org.templateproject.security.HexUtils;
 
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
- * 摘要算法<br>
+ * HMAC摘要算法<br>
+ * HMAC，全称为“Hash Message Authentication Code”，中文名“散列消息鉴别码”<br>
+ * 主要是利用哈希算法，以一个密钥和一个消息为输入，生成一个消息摘要作为输出。<br>
+ * 一般的，消息鉴别码用于验证传输于两个共 同享有一个密钥的单位之间的消息。<br>
+ * HMAC 可以与任何迭代散列函数捆绑使用。MD5 和 SHA-1 就是这种散列函数。HMAC 还可以使用一个用于计算和确认消息鉴别值的密钥。<br>
  * 注意：此对象实例化后为非线程安全！
  *
  * @author Looly
  */
-public class Digester {
+public class HMac {
 
-    //默认缓存大小
-    private static final int DEFAULT_BUFFER_SIZE = 1024;
+    private Mac mac;
+    private SecretKey secretKey;
 
-    private MessageDigest digest;
+    public HMac(HmacAlgorithm algorithm) {
+        this(algorithm, null);
+    }
 
-    public Digester(DigestAlgorithm algorithm) {
-        init(algorithm.getValue());
+    public HMac(HmacAlgorithm algorithm, byte[] key) {
+        init(algorithm.getValue(), key);
     }
 
     /**
      * 初始化
      *
      * @param algorithm 算法
-     * @return {@link Digester}
+     * @return {@link HMac}
      * @throws CryptoException Cause by IOException
      */
-    public Digester init(String algorithm) {
+    public HMac init(String algorithm, byte[] key) {
         try {
-            digest = MessageDigest.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
+            mac = Mac.getInstance(algorithm);
+            if (null != key) {
+                this.secretKey = new SecretKeySpec(key, algorithm);
+            } else {
+                this.secretKey = SecurityUtils.generateKey(algorithm);
+            }
+            mac.init(this.secretKey);
+        } catch (Exception e) {
             throw new CryptoException(e);
         }
         return this;
@@ -52,8 +66,7 @@ public class Digester {
      * @return 摘要
      */
     public byte[] digest(String data, String charset) {
-        if (data == null) return null;
-        return digest(charset == null ? data.getBytes() : data.getBytes(Charset.forName(charset)));
+        return digest(data == null ? null : data.getBytes(charset == null || charset.trim().length() == 0 ? Charset.defaultCharset() : Charset.forName(charset)));
     }
 
     /**
@@ -63,7 +76,7 @@ public class Digester {
      * @return 摘要
      */
     public byte[] digest(String data) {
-        return digest(data, StandardCharsets.UTF_8.displayName());
+        return digest(data, StandardCharsets.UTF_8.name());
     }
 
     /**
@@ -84,7 +97,7 @@ public class Digester {
      * @return 摘要
      */
     public String digestHex(String data) {
-        return digestHex(data, Charset.defaultCharset().displayName());
+        return digestHex(data, StandardCharsets.UTF_8.name());
     }
 
     /**
@@ -103,12 +116,11 @@ public class Digester {
         } catch (IOException e) {
             throw new CryptoException(e);
         } finally {
-            if (in != null) {
+            if (in != null)
                 try {
                     in.close();
                 } catch (Exception e) {
                 }
-            }
         }
     }
 
@@ -132,9 +144,9 @@ public class Digester {
     public byte[] digest(byte[] data) {
         byte[] result;
         try {
-            result = digest.digest(data);
+            result = mac.doFinal(data);
         } finally {
-            digest.reset();
+            mac.reset();
         }
         return result;
     }
@@ -150,18 +162,18 @@ public class Digester {
     }
 
     /**
-     * 生成摘要，使用默认缓存大小
+     * 生成摘要，使用默认缓存大小:1024
      *
      * @param data {@link InputStream} 数据流
      * @return 摘要bytes
      */
     public byte[] digest(InputStream data) {
-        return digest(data, DEFAULT_BUFFER_SIZE);
+        return digest(data, 1024);
     }
 
     /**
      * 生成摘要，并转为16进制字符串<br>
-     * 使用默认缓存大小
+     * 使用默认缓存大小:1024
      *
      * @param data 被摘要数据
      * @return 摘要
@@ -174,12 +186,12 @@ public class Digester {
      * 生成摘要
      *
      * @param data         {@link InputStream} 数据流
-     * @param bufferLength 缓存长度，不足1使用 {@link Digester#DEFAULT_BUFFER_SIZE} 做为默认值
+     * @param bufferLength 缓存长度，不足1使用 1024 做为默认值
      * @return 摘要bytes
      */
     public byte[] digest(InputStream data, int bufferLength) {
         if (bufferLength < 1) {
-            bufferLength = DEFAULT_BUFFER_SIZE;
+            bufferLength = 1024;
         }
         byte[] buffer = new byte[bufferLength];
 
@@ -188,24 +200,24 @@ public class Digester {
             int read = data.read(buffer, 0, bufferLength);
 
             while (read > -1) {
-                digest.update(buffer, 0, read);
+                mac.update(buffer, 0, read);
                 read = data.read(buffer, 0, bufferLength);
             }
-            digest.digest();
+            mac.doFinal();
         } catch (IOException e) {
             throw new CryptoException(e);
         } finally {
-            digest.reset();
+            mac.reset();
         }
         return result;
     }
 
     /**
      * 生成摘要，并转为16进制字符串<br>
-     * 使用默认缓存大小
+     * 使用默认缓存大小:1024
      *
      * @param data         被摘要数据
-     * @param bufferLength 缓存长度，不足1使用 {@link Digester#DEFAULT_BUFFER_SIZE} 做为默认值
+     * @param bufferLength 缓存长度，不足1使用1024 做为默认值
      * @return 摘要
      */
     public String digestHex(InputStream data, int bufferLength) {
@@ -213,11 +225,11 @@ public class Digester {
     }
 
     /**
-     * 获得 {@link MessageDigest}
+     * 获得 {@link Mac}
      *
-     * @return {@link MessageDigest}
+     * @return {@link Mac}
      */
-    public MessageDigest getDigest() {
-        return digest;
+    public Mac getMac() {
+        return mac;
     }
 }

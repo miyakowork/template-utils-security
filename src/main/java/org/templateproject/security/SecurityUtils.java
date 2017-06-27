@@ -1,13 +1,13 @@
-package me.wuwenbin.security;
+package org.templateproject.security;
 
-import me.wuwenbin.security.asymmetric.AsymmetricAlgorithm;
-import me.wuwenbin.security.digest.DigestAlgorithm;
-import me.wuwenbin.security.digest.Digester;
-import me.wuwenbin.security.digest.HMac;
-import me.wuwenbin.security.digest.HmacAlgorithm;
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.symmetric.SymmetricAlgorithm;
-import me.wuwenbin.security.symmetric.SymmetricCriptor;
+import org.templateproject.security.asymmetric.AsymmetricAlgorithm;
+import org.templateproject.security.digest.DigestAlgorithm;
+import org.templateproject.security.digest.Digester;
+import org.templateproject.security.digest.HMac;
+import org.templateproject.security.digest.HmacAlgorithm;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.symmetric.SymmetricAlgorithm;
+import org.templateproject.security.symmetric.SymmetricCriptor;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;

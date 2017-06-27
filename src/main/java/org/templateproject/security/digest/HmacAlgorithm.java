@@ -1,4 +1,4 @@
-package me.wuwenbin.security.digest;
+package org.templateproject.security.digest;
 
 /**
  * HMAC算法类型<br>

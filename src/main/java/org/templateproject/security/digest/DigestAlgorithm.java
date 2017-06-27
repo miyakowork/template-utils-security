@@ -1,4 +1,4 @@
-package me.wuwenbin.security.digest;
+package org.templateproject.security.digest;
 
 /**
  * 摘要算法类型<br>

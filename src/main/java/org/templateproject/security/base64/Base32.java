@@ -1,4 +1,4 @@
-package me.wuwenbin.security.base64;
+package org.templateproject.security.base64;
 
 /**
  * Base32 - encodes and decodes RFC3548 Base32 (see http://www.faqs.org/rfcs/rfc3548.html )<br>

@@ -1,4 +1,4 @@
-package me.wuwenbin.security.zsupport;
+package org.templateproject.security.zsupport;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,56 +1,42 @@
-package me.wuwenbin.security.digest;
+package org.templateproject.security.digest;
 
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.SecurityUtils;
-import me.wuwenbin.security.HexUtils;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.HexUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
- * HMAC摘要算法<br>
- * HMAC，全称为“Hash Message Authentication Code”，中文名“散列消息鉴别码”<br>
- * 主要是利用哈希算法，以一个密钥和一个消息为输入，生成一个消息摘要作为输出。<br>
- * 一般的，消息鉴别码用于验证传输于两个共 同享有一个密钥的单位之间的消息。<br>
- * HMAC 可以与任何迭代散列函数捆绑使用。MD5 和 SHA-1 就是这种散列函数。HMAC 还可以使用一个用于计算和确认消息鉴别值的密钥。<br>
+ * 摘要算法<br>
  * 注意：此对象实例化后为非线程安全！
  *
  * @author Looly
  */
-public class HMac {
+public class Digester {
 
-    private Mac mac;
-    private SecretKey secretKey;
+    //默认缓存大小
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
 
-    public HMac(HmacAlgorithm algorithm) {
-        this(algorithm, null);
-    }
+    private MessageDigest digest;
 
-    public HMac(HmacAlgorithm algorithm, byte[] key) {
-        init(algorithm.getValue(), key);
+    public Digester(DigestAlgorithm algorithm) {
+        init(algorithm.getValue());
     }
 
     /**
      * 初始化
      *
      * @param algorithm 算法
-     * @return {@link HMac}
+     * @return {@link Digester}
      * @throws CryptoException Cause by IOException
      */
-    public HMac init(String algorithm, byte[] key) {
+    public Digester init(String algorithm) {
         try {
-            mac = Mac.getInstance(algorithm);
-            if (null != key) {
-                this.secretKey = new SecretKeySpec(key, algorithm);
-            } else {
-                this.secretKey = SecurityUtils.generateKey(algorithm);
-            }
-            mac.init(this.secretKey);
-        } catch (Exception e) {
+            digest = MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
         return this;
@@ -66,7 +52,8 @@ public class HMac {
      * @return 摘要
      */
     public byte[] digest(String data, String charset) {
-        return digest(data == null ? null : data.getBytes(charset == null || charset.trim().length() == 0 ? Charset.defaultCharset() : Charset.forName(charset)));
+        if (data == null) return null;
+        return digest(charset == null ? data.getBytes() : data.getBytes(Charset.forName(charset)));
     }
 
     /**
@@ -76,7 +63,7 @@ public class HMac {
      * @return 摘要
      */
     public byte[] digest(String data) {
-        return digest(data, StandardCharsets.UTF_8.name());
+        return digest(data, StandardCharsets.UTF_8.displayName());
     }
 
     /**
@@ -97,7 +84,7 @@ public class HMac {
      * @return 摘要
      */
     public String digestHex(String data) {
-        return digestHex(data, StandardCharsets.UTF_8.name());
+        return digestHex(data, Charset.defaultCharset().displayName());
     }
 
     /**
@@ -116,11 +103,12 @@ public class HMac {
         } catch (IOException e) {
             throw new CryptoException(e);
         } finally {
-            if (in != null)
+            if (in != null) {
                 try {
                     in.close();
                 } catch (Exception e) {
                 }
+            }
         }
     }
 
@@ -144,9 +132,9 @@ public class HMac {
     public byte[] digest(byte[] data) {
         byte[] result;
         try {
-            result = mac.doFinal(data);
+            result = digest.digest(data);
         } finally {
-            mac.reset();
+            digest.reset();
         }
         return result;
     }
@@ -162,18 +150,18 @@ public class HMac {
     }
 
     /**
-     * 生成摘要，使用默认缓存大小:1024
+     * 生成摘要，使用默认缓存大小
      *
      * @param data {@link InputStream} 数据流
      * @return 摘要bytes
      */
     public byte[] digest(InputStream data) {
-        return digest(data, 1024);
+        return digest(data, DEFAULT_BUFFER_SIZE);
     }
 
     /**
      * 生成摘要，并转为16进制字符串<br>
-     * 使用默认缓存大小:1024
+     * 使用默认缓存大小
      *
      * @param data 被摘要数据
      * @return 摘要
@@ -186,12 +174,12 @@ public class HMac {
      * 生成摘要
      *
      * @param data         {@link InputStream} 数据流
-     * @param bufferLength 缓存长度，不足1使用 1024 做为默认值
+     * @param bufferLength 缓存长度，不足1使用 {@link Digester#DEFAULT_BUFFER_SIZE} 做为默认值
      * @return 摘要bytes
      */
     public byte[] digest(InputStream data, int bufferLength) {
         if (bufferLength < 1) {
-            bufferLength = 1024;
+            bufferLength = DEFAULT_BUFFER_SIZE;
         }
         byte[] buffer = new byte[bufferLength];
 
@@ -200,24 +188,24 @@ public class HMac {
             int read = data.read(buffer, 0, bufferLength);
 
             while (read > -1) {
-                mac.update(buffer, 0, read);
+                digest.update(buffer, 0, read);
                 read = data.read(buffer, 0, bufferLength);
             }
-            mac.doFinal();
+            digest.digest();
         } catch (IOException e) {
             throw new CryptoException(e);
         } finally {
-            mac.reset();
+            digest.reset();
         }
         return result;
     }
 
     /**
      * 生成摘要，并转为16进制字符串<br>
-     * 使用默认缓存大小:1024
+     * 使用默认缓存大小
      *
      * @param data         被摘要数据
-     * @param bufferLength 缓存长度，不足1使用1024 做为默认值
+     * @param bufferLength 缓存长度，不足1使用 {@link Digester#DEFAULT_BUFFER_SIZE} 做为默认值
      * @return 摘要
      */
     public String digestHex(InputStream data, int bufferLength) {
@@ -225,11 +213,11 @@ public class HMac {
     }
 
     /**
-     * 获得 {@link Mac}
+     * 获得 {@link MessageDigest}
      *
-     * @return {@link Mac}
+     * @return {@link MessageDigest}
      */
-    public Mac getMac() {
-        return mac;
+    public MessageDigest getDigest() {
+        return digest;
     }
 }

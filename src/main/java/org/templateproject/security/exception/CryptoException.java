@@ -1,4 +1,4 @@
-package me.wuwenbin.security.exception;
+package org.templateproject.security.exception;
 
 /**
  * 加密异常

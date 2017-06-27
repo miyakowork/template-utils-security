@@ -1,7 +1,7 @@
-package me.wuwenbin.security;
+package org.templateproject.security;
 
-import me.wuwenbin.security.digest.DigestAlgorithm;
-import me.wuwenbin.security.digest.Digester;
+import org.templateproject.security.digest.DigestAlgorithm;
+import org.templateproject.security.digest.Digester;
 
 import java.io.File;
 import java.io.InputStream;

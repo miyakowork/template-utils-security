@@ -1,8 +1,8 @@
-package me.wuwenbin.security.symmetric;
+package org.templateproject.security.symmetric;
 
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.SecurityUtils;
-import me.wuwenbin.security.zsupport.FastByteArrayOutputStream;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.SecurityUtils;
+import org.templateproject.security.zsupport.FastByteArrayOutputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;

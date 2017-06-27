@@ -1,4 +1,4 @@
-package me.wuwenbin.security.base64;
+package org.templateproject.security.base64;
 
 import java.nio.charset.Charset;
 

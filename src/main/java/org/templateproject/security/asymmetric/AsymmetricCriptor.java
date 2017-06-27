@@ -1,11 +1,11 @@
-package me.wuwenbin.security.asymmetric;
+package org.templateproject.security.asymmetric;
 
 
-import me.wuwenbin.security.SecurityUtils;
-import me.wuwenbin.security.base64.Base64;
-import me.wuwenbin.security.exception.CryptoException;
-import me.wuwenbin.security.symmetric.SymmetricAlgorithm;
-import me.wuwenbin.security.zsupport.FastByteArrayOutputStream;
+import org.templateproject.security.SecurityUtils;
+import org.templateproject.security.base64.Base64;
+import org.templateproject.security.exception.CryptoException;
+import org.templateproject.security.symmetric.SymmetricAlgorithm;
+import org.templateproject.security.zsupport.FastByteArrayOutputStream;
 
 import javax.crypto.Cipher;
 import java.io.IOException;
